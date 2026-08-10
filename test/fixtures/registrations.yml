@@ -1,0 +1,24 @@
+budi:
+  name: Budi Santoso
+  email: budi@example.com
+  phone: "081234567890"
+  jersey_size: L
+  paid: false
+  category: five_k
+
+siti:
+  name: Siti Aminah
+  email: siti@example.com
+  phone: "081298765432"
+  jersey_size: M
+  paid: true
+  category: ten_k
+
+# Mengisi satu-satunya slot kategori fun_run.
+andi:
+  name: Andi Wijaya
+  email: andi@example.com
+  phone: "081211112222"
+  jersey_size: S
+  paid: false
+  category: fun_run

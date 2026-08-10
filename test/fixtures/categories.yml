@@ -1,0 +1,15 @@
+five_k:
+  name: 5K
+  quota: 50
+  price: 75000
+
+ten_k:
+  name: 10K
+  quota: 30
+  price: 125000
+
+# Kuota 1 dan sudah terisi satu pendaftaran, jadi kategori ini selalu penuh.
+fun_run:
+  name: Fun Run
+  quota: 1
+  price: 50000
