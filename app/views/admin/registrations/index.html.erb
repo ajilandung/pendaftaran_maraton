@@ -1,43 +1,53 @@
 <% content_for :title, "Panel Panitia" %>
 
 <section class="space-y-6">
-  <header class="space-y-2">
-    <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Panel panitia</h1>
-    <p class="text-slate-600"><%= @registrations.size %> pendaftar tercatat.</p>
+  <header class="rounded-2xl bg-ink p-6 text-white sm:flex sm:items-start sm:justify-between sm:gap-6">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[0.3em] text-volt">Khusus panitia</p>
+      <h1 class="mt-3 font-display text-3xl uppercase leading-none tracking-tight sm:text-4xl">Panel panitia</h1>
+      <p class="mt-3 text-white/70"><%= @registrations.size %> pendaftar tercatat.</p>
+    </div>
+
+    <%= button_to "Keluar", logout_path, method: :delete,
+          class: "mt-5 w-full cursor-pointer rounded-xl border-2 border-white/25 px-5 py-3 font-display text-sm uppercase tracking-[0.15em] hover:border-volt hover:text-volt sm:mt-0 sm:w-auto sm:shrink-0" %>
   </header>
 
-  <div class="grid gap-3 sm:grid-cols-3">
+  <div class="grid gap-4 sm:grid-cols-3">
     <% @categories.each do |category| %>
-      <div class="rounded-lg border border-slate-200 bg-white p-4">
-        <p class="text-sm text-slate-500"><%= category.name %></p>
-        <p class="text-xl font-semibold">
-          Sisa <%= category.remaining_quota %><span class="text-sm font-normal text-slate-500"> / <%= category.quota %></span>
+      <div class="rounded-2xl border-2 border-ink bg-white p-5">
+        <p class="font-display text-2xl uppercase tracking-tight"><%= category.name %></p>
+        <p class="mt-3 font-display text-3xl">
+          Sisa <%= category.remaining_quota %><span class="text-base font-normal text-slate-500"> / <%= category.quota %></span>
         </p>
+        <div class="mt-4 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div class="h-full rounded-full <%= category.full? ? "bg-slate-400" : "bg-volt" %>"
+               style="width: <%= category.filled_percentage %>%"></div>
+        </div>
       </div>
     <% end %>
   </div>
 
   <% if @registrations.empty? %>
-    <p class="rounded-xl border border-slate-200 bg-white p-5 text-slate-600">Belum ada pendaftar.</p>
+    <p class="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-6 text-slate-600">Belum ada pendaftar.</p>
   <% else %>
-    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-2xl border-2 border-ink bg-white">
       <table class="min-w-full text-left text-sm">
-        <thead class="border-b border-slate-200 text-slate-500">
+        <thead class="bg-ink text-xs uppercase tracking-widest text-white">
           <tr>
-            <th class="whitespace-nowrap px-4 py-3 font-medium">No</th>
-            <th class="whitespace-nowrap px-4 py-3 font-medium">Nama</th>
-            <th class="whitespace-nowrap px-4 py-3 font-medium">Kontak</th>
-            <th class="whitespace-nowrap px-4 py-3 font-medium">Kategori</th>
-            <th class="whitespace-nowrap px-4 py-3 font-medium">Jersey</th>
-            <th class="whitespace-nowrap px-4 py-3 font-medium">Status</th>
-            <th class="whitespace-nowrap px-4 py-3 font-medium">Tindakan</th>
+            <th class="whitespace-nowrap px-4 py-3 font-bold">No</th>
+            <th class="whitespace-nowrap px-4 py-3 font-bold">Nama</th>
+            <th class="whitespace-nowrap px-4 py-3 font-bold">Kontak</th>
+            <th class="whitespace-nowrap px-4 py-3 font-bold">Kategori</th>
+            <th class="whitespace-nowrap px-4 py-3 font-bold">Jersey</th>
+            <th class="whitespace-nowrap px-4 py-3 font-bold">Status</th>
+            <th class="whitespace-nowrap px-4 py-3 font-bold">Tindakan</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
+        <tbody class="divide-y divide-slate-200">
           <% @registrations.each do |registration| %>
             <tr>
-              <td class="whitespace-nowrap px-4 py-3 font-medium">#<%= registration.id %></td>
-              <td class="whitespace-nowrap px-4 py-3"><%= registration.name %></td>
+              <td class="whitespace-nowrap px-4 py-3 font-display text-lg">#<%= registration.id %></td>
+              <td class="whitespace-nowrap px-4 py-3 font-bold"><%= registration.name %></td>
               <td class="whitespace-nowrap px-4 py-3 text-slate-500">
                 <%= registration.email %><br>
                 <%= registration.phone %>
@@ -46,25 +56,25 @@
               <td class="whitespace-nowrap px-4 py-3"><%= registration.jersey_size %></td>
               <td class="whitespace-nowrap px-4 py-3">
                 <% if registration.paid? %>
-                  <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-800">Lunas</span>
+                  <span class="rounded-full bg-volt px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink">Lunas</span>
                 <% else %>
-                  <span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">Belum lunas</span>
+                  <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700">Belum lunas</span>
                 <% end %>
               </td>
               <td class="whitespace-nowrap px-4 py-3">
                 <div class="flex items-center gap-3">
                   <% if registration.paid? %>
                     <%= button_to "Batalkan lunas", mark_unpaid_admin_registration_path(registration),
-                          method: :patch, class: "cursor-pointer font-medium text-slate-700 underline" %>
+                          method: :patch, class: "cursor-pointer text-xs font-bold uppercase tracking-wider text-slate-600 underline" %>
                   <% else %>
                     <%= button_to "Tandai lunas", mark_paid_admin_registration_path(registration),
-                          method: :patch, class: "cursor-pointer font-medium text-emerald-700 underline" %>
+                          method: :patch, class: "cursor-pointer text-xs font-bold uppercase tracking-wider text-ink underline" %>
                   <% end %>
 
                   <%= button_to "Hapus", admin_registration_path(registration),
                         method: :delete,
                         form: { data: { turbo_confirm: "Hapus pendaftaran #{registration.name}? Slotnya akan kembali tersedia." } },
-                        class: "cursor-pointer font-medium text-red-700 underline" %>
+                        class: "cursor-pointer text-xs font-bold uppercase tracking-wider text-red-700 underline" %>
                 </div>
               </td>
             </tr>

@@ -5,6 +5,10 @@ Rails.application.routes.draw do
 
   get "status", to: "status#show"
 
+  get "login", to: "sessions#new"
+  post "login", to: "sessions#create"
+  delete "logout", to: "sessions#destroy"
+
   namespace :admin do
     resources :registrations, only: [ :index, :destroy ] do
       member do

@@ -1,9 +1,5 @@
 class Admin::RegistrationsController < ApplicationController
-  ADMIN_PASSWORD = Rails.application.credentials.admin_password ||
-    raise("admin_password belum ada di credentials. Set lewat: ruby bin/rails credentials:edit")
-
-  http_basic_authenticate_with name: "admin", password: ADMIN_PASSWORD
-
+  before_action :require_admin
   before_action :set_registration, only: %i[ mark_paid mark_unpaid destroy ]
 
   def index

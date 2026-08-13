@@ -1,14 +1,16 @@
 require "test_helper"
 
 class Admin::RegistrationsControllerTest < ActionDispatch::IntegrationTest
-  test "tanpa kredensial halaman panitia ditolak" do
+  test "tanpa login halaman panitia dialihkan ke halaman login" do
     get admin_registrations_url
 
-    assert_response :unauthorized
+    assert_redirected_to login_path
   end
 
-  test "dengan kredensial benar daftar pendaftar tampil" do
-    get admin_registrations_url, headers: auth_headers
+  test "setelah login daftar pendaftar tampil" do
+    sign_in_as_admin
+
+    get admin_registrations_url
 
     assert_response :success
     assert_match registrations(:budi).name, response.body
@@ -16,7 +18,9 @@ class Admin::RegistrationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "sisa kuota tiap kategori tampil" do
-    get admin_registrations_url, headers: auth_headers
+    sign_in_as_admin
+
+    get admin_registrations_url
 
     assert_response :success
     assert_match categories(:five_k).name, response.body
@@ -24,66 +28,72 @@ class Admin::RegistrationsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "menandai lunas mengubah status pendaftaran" do
+    sign_in_as_admin
     registration = registrations(:budi)
     assert_not registration.paid
 
-    patch mark_paid_admin_registration_url(registration), headers: auth_headers
+    patch mark_paid_admin_registration_url(registration)
 
     assert_redirected_to admin_registrations_path
     assert registration.reload.paid
   end
 
   test "membatalkan tanda lunas mengembalikan status belum lunas" do
+    sign_in_as_admin
     registration = registrations(:siti)
     assert registration.paid
 
-    patch mark_unpaid_admin_registration_url(registration), headers: auth_headers
+    patch mark_unpaid_admin_registration_url(registration)
 
     assert_redirected_to admin_registrations_path
     assert_not registration.reload.paid
   end
 
   test "menandai lunas tetap berhasil pada kategori yang sudah penuh" do
+    sign_in_as_admin
     registration = registrations(:andi)
     assert registration.category.full?, "prasyarat: kategori fixture harus penuh"
 
-    patch mark_paid_admin_registration_url(registration), headers: auth_headers
+    patch mark_paid_admin_registration_url(registration)
 
     assert_redirected_to admin_registrations_path
     assert registration.reload.paid
   end
 
   test "menghapus pendaftaran mengurangi jumlah pendaftaran" do
+    sign_in_as_admin
+
     assert_difference "Registration.count", -1 do
-      delete admin_registration_url(registrations(:budi)), headers: auth_headers
+      delete admin_registration_url(registrations(:budi))
     end
 
     assert_redirected_to admin_registrations_path
   end
 
   test "menghapus pendaftaran membebaskan slot kategorinya" do
+    sign_in_as_admin
     category = categories(:fun_run)
     assert category.full?
 
-    delete admin_registration_url(registrations(:andi)), headers: auth_headers
+    delete admin_registration_url(registrations(:andi))
 
     assert_equal 1, category.reload.remaining_quota
   end
 
-  test "tanpa kredensial penghapusan tidak terjadi" do
+  test "tanpa login penghapusan tidak terjadi" do
     assert_no_difference "Registration.count" do
       delete admin_registration_url(registrations(:budi))
     end
 
-    assert_response :unauthorized
+    assert_redirected_to login_path
   end
 
-  private
-    def auth_headers
-      {
-        "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials(
-          "admin", Rails.application.credentials.admin_password
-        )
-      }
-    end
+  test "tanpa login penandaan lunas tidak terjadi" do
+    registration = registrations(:budi)
+
+    patch mark_paid_admin_registration_url(registration)
+
+    assert_redirected_to login_path
+    assert_not registration.reload.paid
+  end
 end

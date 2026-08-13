@@ -5,16 +5,16 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_response :success
-    assert_select "h2", text: categories(:five_k).name
-    assert_select "h2", text: categories(:ten_k).name
-    assert_select "h2", text: categories(:fun_run).name
+    assert_select "h3", text: categories(:five_k).name
+    assert_select "h3", text: categories(:ten_k).name
+    assert_select "h3", text: categories(:fun_run).name
   end
 
   test "kategori yang masih punya sisa menampilkan angka sisa kuotanya" do
     get root_url
 
     assert_response :success
-    assert_match "Sisa kuota", response.body
+    assert_select "article", text: /Sisa/
     assert_match categories(:five_k).remaining_quota.to_s, response.body
   end
 
@@ -36,5 +36,19 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     get root_url
 
     assert_select "a[href=?]", new_registration_path(category_id: categories(:five_k).id)
+  end
+
+  test "halaman utama menampilkan tautan login panitia" do
+    get root_url
+
+    assert_select "a[href=?]", login_path, text: "Login panitia"
+  end
+
+  test "panitia yang sudah masuk melihat tautan menuju panel" do
+    sign_in_as_admin
+
+    get root_url
+
+    assert_select "a[href=?]", admin_registrations_path
   end
 end

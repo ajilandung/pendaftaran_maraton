@@ -47,6 +47,23 @@ class CategoryTest < ActiveSupport::TestCase
     assert_equal count_after_first_run, Category.count
   end
 
+  test "persentase terisi mencerminkan porsi kuota yang sudah dipakai" do
+    category = Category.create!(name: "Test 4K", quota: 4, price: 50_000)
+    create_registration(category, "seperempat@example.com")
+
+    assert_equal 25, category.filled_percentage
+  end
+
+  test "kategori penuh berpersentase seratus" do
+    assert_equal 100, categories(:fun_run).filled_percentage
+  end
+
+  test "kategori kosong berpersentase nol" do
+    category = Category.create!(name: "Test 8K", quota: 10, price: 50_000)
+
+    assert_equal 0, category.filled_percentage
+  end
+
   private
     def create_registration(category, email)
       Registration.create!(

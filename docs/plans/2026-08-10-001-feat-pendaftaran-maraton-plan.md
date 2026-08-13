@@ -144,7 +144,7 @@ Tidak ada yang tersisa. Bentuk tabel dijawab oleh KTD1, penyimpanan kata sandi a
 
 - KTD1. **Dua model: `Category` dan `Registration`, dengan `Registration belongs_to :category`.** Ini jumlah entitas terkecil yang masih mengajarkan relasi satu-ke-banyak. Governs R1, R2, R5.
 - KTD2. **Kuota divalidasi di model `Registration` lewat validasi kustom yang menghitung pendaftaran pada kategori tujuan.** Aturan bisnis tinggal di model, bukan di controller, sesuai konvensi Rails. Governs R5, R12.
-- KTD3. **Halaman admin memakai `http_basic_authenticate_with` bawaan Rails, dengan kata sandi dari Rails credentials.** Tidak ada gem autentikasi. Governs R8.
+- KTD3. **Halaman admin dijaga halaman login sendiri yang menyimpan penanda di `session`, dengan kata sandi dari Rails credentials.** Tidak ada gem autentikasi dan tidak ada model `User` — hanya satu kata sandi, sesuai R8. Direvisi atas permintaan pengguna; keputusan semula memakai `http_basic_authenticate_with`, yang memunculkan kotak isian bawaan peramban dan tidak punya tombol keluar. Halaman login sendiri lebih mengajarkan dasar Rails: controller sesi, `session`, `before_action`, dan flash. Governs R8.
 - KTD4. **Kategori diisi lewat `db/seeds.rb`, bukan antarmuka admin.** Menghemat satu CRUD penuh yang tidak menambah pelajaran baru di tahap ini.
 - KTD5. **Nomor pendaftaran memakai `id` record apa adanya.** Tidak ada kode acak, karena tidak ada yang dirahasiakan di balik nomor itu. Governs R6.
 - KTD6. **Cek status memakai form pencarian berdasarkan email, bukan tautan unik per pendaftar.** Menghindari pengiriman email yang belum masuk cakupan. Governs R7.
@@ -316,27 +316,41 @@ Peta rute:
 - **Dependencies:** U1, U3
 - **Files:**
   - `config/routes.rb`
+  - `app/controllers/application_controller.rb`
+  - `app/controllers/sessions_controller.rb`
   - `app/controllers/admin/registrations_controller.rb`
+  - `app/views/sessions/new.html.erb`
   - `app/views/admin/registrations/index.html.erb`
+  - `app/views/categories/index.html.erb`
   - `config/credentials.yml.enc`
+  - `test/controllers/sessions_controller_test.rb`
   - `test/controllers/admin/registrations_controller_test.rb`
 - **Approach:**
   1. Daftarkan namespace `admin` berisi `resources :registrations, only: [:index, :destroy]` dengan dua rute anggota `mark_paid` dan `mark_unpaid`, per KTD9.
-  2. Controller memanggil `http_basic_authenticate_with` yang membaca nama pengguna dan kata sandi dari Rails credentials, per KTD3.
-  3. `index` menampilkan tabel pendaftar beserta kategori dan status, ditambah ringkasan sisa kuota tiap kategori.
-  4. `mark_paid` dan `mark_unpaid` mengubah kolom status lalu kembali ke daftar.
-  5. `destroy` menghapus pendaftaran lalu kembali ke daftar; tombol hapus meminta konfirmasi lebih dulu.
+  2. Daftarkan `get "login"`, `post "login"`, dan `delete "logout"` menuju `sessions#new`, `sessions#create`, dan `sessions#destroy`.
+  3. `sessions#create` membandingkan kata sandi kiriman dengan kata sandi di Rails credentials memakai `ActiveSupport::SecurityUtils.secure_compare`, lalu menyimpan penanda di `session`, per KTD3. Kata sandi salah merender ulang form dengan status `:unprocessable_entity`.
+  4. `ApplicationController` memegang `admin_signed_in?` dan `require_admin`; controller admin memanggilnya lewat `before_action`, dan pengunjung yang belum masuk dialihkan ke halaman login.
+  5. Halaman utama memuat tombol menuju halaman login, sehingga panitia punya pintu masuk yang terlihat.
+  6. `index` menampilkan tabel pendaftar beserta kategori dan status, ditambah ringkasan sisa kuota tiap kategori dan tombol keluar.
+  7. `mark_paid` dan `mark_unpaid` mengubah kolom status lalu kembali ke daftar.
+  8. `destroy` menghapus pendaftaran lalu kembali ke daftar; tombol hapus meminta konfirmasi lebih dulu.
 - **Execution note:** Simpan kata sandi lebih dulu lewat `bin/rails credentials:edit`. Di Windows, jalankan `$env:EDITOR="notepad"` pada sesi terminal yang sama sebelum perintah itu, karena tanpa editor yang ditunjuk perintahnya gagal.
 - **Patterns to follow:** Autentikasi bawaan Rails tanpa gem; namespace `admin` memisahkan controller publik dan panitia.
 - **Test scenarios:**
-  - Membuka daftar admin tanpa kredensial menghasilkan status tidak terotorisasi.
-  - Membuka daftar admin dengan kredensial benar merespons sukses dan memuat nama pendaftar yang ada.
+  - Halaman login menampilkan field kata sandi.
+  - Kata sandi benar mengalihkan ke panel panitia.
+  - Kata sandi salah maupun kosong merender ulang form dan tidak membuka panel.
+  - Panitia yang sudah masuk dialihkan keluar dari halaman login.
+  - Keluar mengakhiri sesi, dan panel kembali tertutup sesudahnya.
+  - Membuka daftar admin tanpa login dialihkan ke halaman login.
+  - Membuka daftar admin sesudah login merespons sukses dan memuat nama pendaftar yang ada.
   - Menandai sebuah pendaftaran lunas mengubah statusnya menjadi lunas.
   - Menandai ulang pendaftaran yang lunas sebagai belum lunas mengembalikan statusnya.
   - Menghapus pendaftaran mengurangi jumlah pendaftaran satu.
   - Covers AE4. Menghapus pendaftaran pada kategori yang penuh membuat kategori itu punya sisa kuota satu.
-  - Menghapus pendaftaran tanpa kredensial tidak mengubah jumlah pendaftaran.
-- **Verification:** Masuk ke `/admin/registrations` dengan kata sandi, tandai satu pendaftaran lunas, lalu hapus satu pendaftaran dan lihat sisa kuota di halaman utama bertambah.
+  - Menghapus pendaftaran maupun menandai lunas tanpa login tidak mengubah data apa pun.
+  - Halaman utama menampilkan tautan login panitia, dan berganti menjadi tautan menuju panel setelah panitia masuk.
+- **Verification:** Klik tombol login panitia di halaman utama, masukkan kata sandi, tandai satu pendaftaran lunas, lalu hapus satu pendaftaran dan lihat sisa kuota di halaman utama bertambah. Tekan tombol keluar dan pastikan `/admin/registrations` kembali menolak.
 
 ### U6. Rapikan tampilan untuk ponsel
 

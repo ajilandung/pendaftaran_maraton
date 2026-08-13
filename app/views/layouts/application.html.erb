@@ -1,45 +1,64 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Pendaftaran Maraton" %></title>
+    <title><%= content_for(:title) || "Maraton Kota 2026" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Pendaftaran Maraton">
+    <meta name="application-name" content="Maraton Kota">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
-    <header class="border-b border-slate-200 bg-white">
-      <div class="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-4">
-        <%= link_to "Maraton Kota", root_path, class: "text-base font-semibold tracking-tight" %>
+  <body class="flex min-h-screen flex-col bg-track text-ink antialiased">
+    <header class="sticky top-0 z-20 bg-ink text-white">
+      <div class="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-4">
+        <%= link_to root_path, class: "font-display text-base uppercase tracking-[0.18em] hover:text-volt" do %>
+          Maraton Kota
+        <% end %>
 
-        <nav>
-          <%= link_to "Cek status", status_path, class: "rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900" %>
+        <nav class="flex items-center gap-2">
+          <%= link_to "Cek status", status_path,
+                class: "rounded-full border border-white/25 px-4 py-2 text-xs font-bold uppercase tracking-widest hover:border-volt hover:text-volt" %>
+
+          <% if admin_signed_in? %>
+            <%= link_to "Panel", admin_registrations_path,
+                  class: "rounded-full border border-volt px-4 py-2 text-xs font-bold uppercase tracking-widest text-volt hover:bg-volt hover:text-ink" %>
+            <%= button_to "Keluar", logout_path, method: :delete,
+                  class: "cursor-pointer rounded-full border border-white/25 px-4 py-2 text-xs font-bold uppercase tracking-widest hover:border-volt hover:text-volt" %>
+          <% end %>
         </nav>
       </div>
+      <div class="race-tape h-1.5"></div>
     </header>
 
-    <main class="mx-auto max-w-3xl px-4 py-8">
+    <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
       <% if notice.present? %>
-        <p class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"><%= notice %></p>
+        <p class="mb-6 rounded-xl border-2 border-ink bg-volt px-4 py-3 text-sm font-bold text-ink"><%= notice %></p>
+      <% end %>
+
+      <% if alert.present? %>
+        <p class="mb-6 rounded-xl border-2 border-red-700 bg-red-50 px-4 py-3 text-sm font-bold text-red-800"><%= alert %></p>
       <% end %>
 
       <%= yield %>
     </main>
+
+    <footer class="mt-8 bg-ink text-white/60">
+      <div class="race-tape h-1.5"></div>
+      <div class="mx-auto max-w-4xl px-4 py-6 text-xs">
+        <p class="font-display uppercase tracking-[0.18em] text-white">Maraton Kota 2026</p>
+        <p class="mt-2">Diselenggarakan komunitas lari kota. Pembayaran lewat transfer bank di luar aplikasi ini.</p>
+      </div>
+    </footer>
   </body>
 </html>

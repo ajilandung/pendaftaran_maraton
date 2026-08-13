@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+/* Palet race day: aspal malam, warna high-vis seperti sepatu lari, dan
+   putih hangat menyerupai permukaan lintasan. */
+@theme {
+  --color-ink: #0b0f14;
+  --color-ink-soft: #1c242e;
+  --color-volt: #d8ff33;
+  --color-track: #f4f4ef;
+
+  --font-display: "Arial Black", "Arial Bold", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Pita garis miring, meminjam motif garis start dan pita finis. */
+@utility race-tape {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-volt) 0 10px,
+    var(--color-ink) 10px 20px
+  );
+}
