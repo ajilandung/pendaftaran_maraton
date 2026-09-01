@@ -7,7 +7,9 @@ gem "propshaft"
 # Use sqlite3 as the database for Active Record
 gem "sqlite3", ">= 2.1"
 # Use the Puma web server [https://github.com/puma/puma]
-gem "puma", ">= 5.0"
+# require: false karena Smart App Control Windows memblokir ekstensi native Puma di mesin ini.
+# Puma tetap dipakai saat deploy (Docker/Linux); di lokal kita jalankan WEBrick.
+gem "puma", ">= 5.0", require: false
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "importmap-rails"
 # Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
@@ -59,6 +61,9 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Web server murni Ruby untuk development di Windows (bin/rails server -u webrick)
+  gem "webrick"
 end
 
 group :test do
